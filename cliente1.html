@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard do Cliente</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root {
+  --primary: #162b45;
+  --green: #43a03f;
+  --bg: #f4f6f9;
+  --light: #ffffff;
+  --muted: #6c757d;
+}
+
+body {
+  font-family: "Montserrat", sans-serif;
+  font-weight: 400; /* Regular */
+  margin: 0;
+  background: var(--bg);
+}
+
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 240px;
+  background: var(--primary);
+  color: white;
+  padding: 30px 20px;
+}
+
+.logo {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.logo img {
+  max-width: 140px;
+}
+
+.menu-item {
+  padding: 12px 15px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: .2s;
+}
+
+.menu-item:hover {
+  background: rgba(255,255,255,.1);
+}
+
+.menu-item.active {
+  background: var(--green);
+  font-weight: 600;
+}
+
+/* HEADER */
+.content { flex: 1; }
+
+.header {
+  background: var(--light);
+  padding: 20px 30px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.header h4 {
+  margin: 0;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.main { padding: 30px; }
+
+/* KPI */
+.card-kpi {
+  background: var(--light);
+  padding: 20px;
+  border-radius: 14px;
+  box-shadow: 0 5px 18px rgba(0,0,0,.05);
+}
+
+.card-kpi h6 {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.card-kpi h4 {
+  margin: 0;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+/* SECTION */
+.section {
+  background: var(--light);
+  padding: 30px;
+  border-radius: 16px;
+  margin-top: 30px;
+  box-shadow: 0 8px 25px rgba(0,0,0,.05);
+}
+
+/* CONTRACT */
+.contract-card {
+  background: var(--light);
+  border-radius: 18px;
+  padding: 25px;
+  margin-bottom: 20px;
+  border-left: 5px solid var(--green);
+  box-shadow: 0 6px 20px rgba(0,0,0,.05);
+  cursor: pointer;
+  transition: .2s;
+}
+
+.contract-card:hover {
+  transform: translateY(-4px);
+}
+
+.contract-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 30px;
+}
+
+.contract-label {
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.contract-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+/* DETAIL GRID FIX */
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-top: 20px;
+}
+
+.detail-block strong {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--primary);
+}
+
+.detail-block ul {
+  padding-left: 18px;
+}
+
+@media(max-width:768px){
+  .contract-grid { grid-template-columns: 1fr 1fr; }
+  .detail-grid { grid-template-columns: 1fr; }
+}
+
+table {
+  border-collapse: collapse;
+}
+
+table th,
+table td {
+  border: 1px solid #d0d7de; /* mais visível */
+  text-align: center;
+  vertical-align: middle;
+}
+
+.green-left-border {
+  border-left: 5px solid var(--green);
+}
+
+/* USER MENU */
+.user-menu {
+  position: relative;
+  cursor: pointer;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  color: var(--primary);
+  font-size: 15px;
+}
+
+.user-dropdown {
+  position: absolute;
+  right: 0;
+  top: 40px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0,0,0,.1);
+  min-width: 160px;
+  display: none;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.user-dropdown.show {
+  display: block;
+}
+
+.dropdown-item {
+  padding: 12px 15px;
+  font-size: 14px;
+  color: var(--primary);
+  transition: .2s;
+}
+
+.dropdown-item:hover {
+  background: #f4f6f9;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="layout">
+
+<div class="sidebar">
+  <div class="logo">
+    <img src="logo_branco.png" alt="Logo">
+  </div>
+  <div class="menu">
+    <div class="menu-item active" onclick="showTab('dashboard', this)">Dashboard</div>
+    <div class="menu-item" onclick="showTab('contratos', this)">Contratos</div>
+  </div>
+</div>
+
+<div class="content">
+
+<div class="header d-flex justify-content-between align-items-center">
+
+  <h4 style="font-weight:700; color: var(--primary);">
+    Área do Cliente 
+  </h4>
+
+  <div class="user-menu" onclick="toggleUserMenu()">
+  <div class="user-info">
+    <span class="user-icon">👤</span>
+    <span id="clienteNome"></span>
+  </div>
+
+  <div class="user-dropdown" id="userDropdown">
+    <div class="dropdown-item" onclick="logout()">
+      🚪 Sair
+    </div>
+  </div>
+</div>
+
+
+</div>
+
+
+<div class="main">
+
+<!-- DASHBOARD -->
+<div id="dashboardTab">
+
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="card-kpi green-left-border">
+      <h6>Aporte de Capital</h6>
+      <h4 id="kpiValor"></h4>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card-kpi green-left-border">
+      <h6>Número de Contratos</h6>
+      <h4 id="kpiContratos"></h4>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card-kpi green-left-border">
+      <h6>Taxa Média</h6>
+      <h4 id="kpiTaxa"></h4>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mt-1">
+
+  <!-- BLOCO 1 - Evolução do Contrato -->
+  <div class="col-md-6">
+    <div class="section h-100 green-left-border">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 style="font-weight:700;">Evolução do Contrato</h5>
+        <select id="contratoSelect" class="form-select" style="width:220px;"></select>
+      </div>
+
+      <canvas id="scpChart" height="120"></canvas>
+    </div>
+  </div>
+
+  <!-- BLOCO 2 - Patrimônio Acumulado -->
+  <div class="col-md-6">
+    <div class="section h-100 green-left-border">
+      <h5 style="font-weight:700; margin-bottom:20px;">
+        Capital Aportado
+      </h5>
+
+      <canvas id="clienteChart" height="120"></canvas>
+    </div>
+  </div>
+
+</div>
+
+</div>
+
+<!-- CONTRATOS -->
+<div id="contratosTab" style="display:none;">
+<div class="section">
+<h5 style="font-weight:700;"><p>Contratos SCP<br></p></h5>
+<div id="contractsContainer"></div>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+
+<script>
+
+const CLIENTE="Otávio Kenji de Lana";
+
+const DATA=[{
+codigo:"SCP161",
+valor:30000,
+inicio:"22/01/2026",
+fim:"22/02/2026",
+taxa:0.016,
+prazo:"12 meses",
+vencimento:"Todo dia 30",
+originador:"OCEAN LIFE",
+assessor:"Ourem Serviços",
+escritorio:"OCEAN LIFE",
+parcelas:["30/01/2026 - R$ 4.000,00","28/02/2026 - R$ 8.000,00","30/03/2026 - R$ 12.000,00","30/04/2026 - R$ 16.000,00","30/05/2026 - R$ 20.000,00","30/06/2026 - R$ 24.000,00","30/07/2026 - R$ 28.000,00","30/08/2026 - R$ 32.000,00","30/09/2026 - R$ 36.000,00","30/10/2026 - R$ 40.000,00","30/11/2026 - R$ 44.000,00","30/12/2026 - R$ 48.000,00"] 
+},
+{
+codigo:"SCP162",
+valor:20000,
+inicio:"23/02/2026",
+fim:"23/06/2026",
+taxa:0.04,
+prazo:"6 meses",
+vencimento:"Todo dia 30",
+originador:"OCEAN LIFE",
+assessor:"Ourem Serviços",
+escritorio:"OCEAN LIFE",
+parcelas:["28/02/2026 - R$ 2000,00","30/03/2026 - R$ 4000,00","30/04/2026 - R$ 6000,00","30/05/2026 - R$ 8000,00","30/06/2026 - R$ 10.000,00","30/07/2026 - R$ 12.000,00"]
+}];
+
+const currency=new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'});
+function pct(v){return(v*100).toFixed(2).replace('.',',')+"%";}
+
+function updateKPIs(){
+document.getElementById("kpiValor").textContent=
+currency.format(DATA.reduce((s,c)=>s+c.valor,0));
+document.getElementById("kpiContratos").textContent=DATA.length;
+document.getElementById("kpiTaxa").textContent=
+pct(DATA.reduce((s,c)=>s+c.taxa,0)/DATA.length);
+}
+
+let contratoAberto=null;
+
+function renderContracts(){
+const container=document.getElementById("contractsContainer");
+container.innerHTML="";
+DATA.forEach((c,i)=>{
+const card=document.createElement("div");
+card.className="contract-card";
+card.innerHTML=`
+<div class="contract-grid">
+<div><div class="contract-label">Contrato</div><div class="contract-value">${c.codigo}</div></div>
+<div><div class="contract-label">Valor</div><div class="contract-value">${currency.format(c.valor)}</div></div>
+<div><div class="contract-label">Início</div><div class="contract-value">${c.inicio}</div></div>
+<div><div class="contract-label">Fim</div><div class="contract-value">${c.fim}</div></div>
+</div>
+<div id="detalhe-${i}" style="display:none;"></div>`;
+card.onclick=()=>toggleDetalhe(i,c,card);
+container.appendChild(card);
+});
+}
+
+function toggleDetalhe(i, c, card) {
+
+  if (contratoAberto !== null && contratoAberto !== i) {
+    document.getElementById(`detalhe-${contratoAberto}`).style.display = "none";
+  }
+
+  const detalhe = document.getElementById(`detalhe-${i}`);
+
+  if (detalhe.style.display === "block") {
+    detalhe.style.display = "none";
+    contratoAberto = null;
+    return;
+  }
+
+  let linhasParcelas = "";
+
+  c.parcelas.forEach((p, index) => {
+    const partes = p.split(" - ");
+    linhasParcelas += `
+      <tr>
+        <td>${index + 1}ª</td>
+        <td>${partes[0]}</td>
+        <td>${partes[1]}</td>
+      </tr>
+    `;
+  });
+
+  detalhe.innerHTML = `
+    <hr>
+
+    <div style="display:grid; grid-template-columns:2fr 1fr; gap:40px; margin-top:20px;">
+
+      <!-- TABELA DE PARCELAS -->
+      <div>
+        <table style="width:100%; border-collapse:collapse; background:white; border-radius:8px; overflow:hidden; box-shadow:0 5px 15px rgba(0,0,0,.05);">
+
+          <thead style="background:#0f2b4c; color:white;">
+            <tr>
+              <th style="padding:10px; border:1px solid #e5e7eb;">Parcelas</th>
+              <th style="padding:10px; border:1px solid #e5e7eb;">Data</th>
+              <th style="padding:10px; border:1px solid #e5e7eb;">Valor</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            ${linhasParcelas}
+          </tbody>
+
+        </table>
+
+        <div style="margin-top:20px;">
+          <a 
+            href="${c.codigo}/${c.codigo}.pdf"
+            download
+            style="
+            display:inline-block;
+            background: var(--green);
+            padding:10px 18px;
+            border-radius:8px;
+            color:white;
+            font-weight:600;
+            text-decoration:none;
+            box-shadow:0 4px 10px rgba(0,0,0,.1);
+          ">
+          📄 Baixar Contrato ${c.codigo}
+        </a>
+      </div>
+      
+      </div>
+
+      <!-- TAXA + PRAZO + METADADOS -->
+      <div>
+
+        <strong>Taxa</strong><br>
+        ${pct(c.taxa)}<br><br>
+
+        <strong>Prazo</strong><br>
+        ${c.prazo}<br><br>
+
+        <strong>Metadados</strong><br>
+        Código: ${c.codigo}<br>
+        Cliente: ${CLIENTE}<br>
+        Originador: ${c.originador}<br>
+        Assessor: ${c.assessor}<br>
+        Escritório: ${c.escritorio}
+
+      </div>
+
+    </div>
+  `;
+
+  detalhe.style.display = "block";
+  contratoAberto = i;
+}
+
+Chart.defaults.font.family = "Montserrat, sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.font.weight = "400";
+
+let scpChart;
+let clienteChart;
+
+function popularSelect(){
+const select=document.getElementById("contratoSelect");
+DATA.forEach((c,i)=>{
+const op=document.createElement("option");
+op.value=i;
+op.textContent=c.codigo;
+select.appendChild(op);
+});
+select.addEventListener("change",()=>gerarGrafico(DATA[select.value]));
+gerarGrafico(DATA[0]);
+}
+
+function gerarGrafico(c){
+
+  const valoresMes = {};
+  const labels = [];
+  const dados = [];
+
+  // 1️⃣ Mapear valor real por mês (sem acumular)
+  c.parcelas.forEach(p => {
+
+    const partes = p.split(" - R$ ");
+    const [dia, mes, ano] = partes[0].split("/");
+
+    const valor = parseFloat(
+      partes[1]
+        .replaceAll(".","")
+        .replace(",",".")
+    );
+
+    valoresMes[mes] = valor;
+  });
+
+  const anoBase = c.parcelas[0].split("/")[2].split(" ")[0];
+
+  // 2️⃣ Gerar Janeiro → Dezembro
+  for(let m = 1; m <= 12; m++){
+
+    const mesStr = String(m).padStart(2,"0");
+
+    const nomeMes = new Date(anoBase, m - 1)
+      .toLocaleString('pt-BR', { month: 'long' });
+
+    labels.push(nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1));
+
+    // Se existir parcela naquele mês → usa valor
+    // Se não existir → zero
+    dados.push(valoresMes[mesStr] || 0);
+  }
+
+    const maiorParcela = Math.max(...dados);
+    const maiorValor = Math.max(maiorParcela, c.valor);
+
+    // arredonda para cima (ex: 18k vira 20k)
+    const maxY = Math.ceil(maiorValor / 5000) * 5000;
+
+    // define intervalo automático
+    const step = maxY / 5;
+
+
+  if(scpChart) scpChart.destroy();
+
+  scpChart = new Chart(document.getElementById("scpChart"),{
+    data:{
+      labels,
+      datasets:[
+        {
+          type:'bar',
+          label:'Parcela',
+          data:dados,
+          backgroundColor:'rgba(46,125,50,.3)',
+          borderRadius:6
+        },
+        {
+          type:'line',
+          label:'Aporte',
+          data:Array(12).fill(c.valor),
+          borderColor:'#0f2b4c',
+          borderWidth:3,
+          tension:.4,
+          pointRadius:0
+        }
+      ]
+    },
+    options:{
+      plugins:{legend:{position:'top'}},
+      scales:{
+        y:{
+          beginAtZero: true,
+          grace: '10%',
+          afterFit: function(scale) {
+            scale.width = 70; // 👈 espaço suficiente para não cortar
+        },
+          ticks:{
+            stepSize:step,
+            callback: function(value) {
+              if (value === 0) return "0";
+              return (value / 1000) + "k";
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function gerarGraficoCliente(){
+const mesesMap = {};
+
+// 1️⃣ Soma valores por mês de início
+DATA.forEach(c=>{
+  const [dia, mes, ano] = c.inicio.split("/");
+  const chave = `${mes}/${ano}`;
+
+  if(!mesesMap[chave]) mesesMap[chave] = 0;
+  mesesMap[chave] += c.valor;
+});
+
+// 2️⃣ Descobre ano base (primeiro contrato)
+const primeiraData = DATA[0].inicio;
+const anoBase = primeiraData.split("/")[2];
+
+const labels = [];
+const valores = [];
+
+let acumulado = 0;
+
+// 3️⃣ Gera Janeiro → Dezembro
+const hoje = new Date();
+const mesAtual = hoje.getMonth() + 1;
+
+for(let m = 1; m <= 12; m++){
+
+  const mesStr = String(m).padStart(2,"0");
+  const chave = `${mesStr}/${anoBase}`;
+
+  const nomeMes = new Date(anoBase, m - 1)
+    .toLocaleString('pt-BR', { month: 'long' });
+
+  labels.push(nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1));
+
+  if(m <= mesAtual){
+
+    if(mesesMap[chave]){
+      acumulado += mesesMap[chave];
+    }
+
+    valores.push(acumulado);
+
+  } else {
+
+    // Depois do mês atual → não mostra informação
+    valores.push(null);
+
+  }
+}
+
+
+// 4️⃣ Renderiza gráfico
+if(clienteChart) clienteChart.destroy();
+
+clienteChart = new Chart(document.getElementById("clienteChart"),{
+  type:'line',
+  data:{
+    labels,
+    datasets:[{
+      label:'Capital Aportado',
+      data:valores,
+      borderColor:'#2e7d32',
+      backgroundColor:'rgba(46,125,50,.15)',
+      fill:true,
+      tension:.4,
+      borderWidth:3,
+      pointRadius:4
+    }]
+  },
+  options:{
+    plugins:{legend:{position:'top'}},
+    scales:{
+      y:{
+        beginAtZero: true,
+        grace: '10%',
+        afterFit: function(scale) {
+          scale.width = 70; // 👈 espaço suficiente para não cortar
+      },
+      ticks:{
+          callback: function(value) {
+            if (value === 0) return "0";
+            return (value / 1000) + "k";
+          }
+        }
+      }
+    }
+  }
+});
+}
+
+
+function showTab(tab,el){
+document.querySelectorAll(".menu-item").forEach(i=>i.classList.remove("active"));
+el.classList.add("active");
+document.getElementById("dashboardTab").style.display=tab==="dashboard"?"block":"none";
+document.getElementById("contratosTab").style.display=tab==="contratos"?"block":"none";
+}
+
+document.addEventListener("DOMContentLoaded",()=>{
+document.getElementById("clienteNome").textContent=CLIENTE;
+updateKPIs();
+renderContracts();
+popularSelect();
+gerarGraficoCliente();
+});
+function toggleUserMenu(){
+  document.getElementById("userDropdown").classList.toggle("show");
+}
+
+// Fecha ao clicar fora
+document.addEventListener("click", function(event) {
+  const menu = document.querySelector(".user-menu");
+  if (!menu.contains(event.target)) {
+    document.getElementById("userDropdown").classList.remove("show");
+  }
+});
+
+function logout(){
+  // Colocar a URL de logout abaixo
+  window.location.href = "https://worldse.com.br/"; 
+}
+
+</script>
+
+</body>
+</html>
